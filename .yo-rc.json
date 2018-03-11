@@ -1,0 +1,9 @@
+{
+  "generator-node": {
+    "promptValues": {
+      "authorName": "Siva",
+      "authorEmail": "VShiva@gmail.com",
+      "authorUrl": ""
+    }
+  }
+}
