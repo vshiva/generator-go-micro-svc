@@ -2,15 +2,13 @@
   "name": "generator-go-micro-svc",
   "version": "0.0.0",
   "description": "Go Lang Micro Service",
-  "homepage": "",
+  "homepage": "https://github.com/vshiva/generator-go-micro-svc",
   "author": {
     "name": "Siva",
     "email": "VShiva@gmail.com",
-    "url": ""
+    "url": "https://github.com/vshiva/generator-go-micro-svc"
   },
-  "files": [
-    "generators"
-  ],
+  "files": ["generators"],
   "main": "generators/index.js",
   "keywords": [
     "Go Lang",
@@ -48,20 +46,11 @@
     "test": "jest"
   },
   "lint-staged": {
-    "*.js": [
-      "eslint --fix",
-      "git add"
-    ],
-    "*.json": [
-      "prettier --write",
-      "git add"
-    ]
+    "*.js": ["eslint --fix", "git add"],
+    "*.json": ["prettier --write", "git add"]
   },
   "eslintConfig": {
-    "extends": [
-      "xo",
-      "prettier"
-    ],
+    "extends": ["xo", "prettier"],
     "env": {
       "jest": true,
       "node": true
@@ -75,9 +64,7 @@
         }
       ]
     },
-    "plugins": [
-      "prettier"
-    ]
+    "plugins": ["prettier"]
   },
   "repository": "vshiva/generator-go-micro-svc",
   "license": "MIT"
