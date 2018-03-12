@@ -2,8 +2,8 @@
 package server
 
 import (
-	"<%=repoUrl%>/<%=serviceName%>pb"
-	"<%=repoUrl%>/state"
+	"<%=repoUrl%>/pkg/<%=serviceName%>pb"
+	"<%=repoUrl%>/pkg/state"
 
 	"golang.org/x/net/context"
 )
