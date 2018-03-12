@@ -21,19 +21,19 @@ module.exports = class extends Generator {
       {
         type: 'input',
         name: 'serviceName',
-        message: 'What is the name of your service ?',
+        message: `What is the name of your ${chalk.yellow('service')}?`,
         default: 'mysvc'
       },
       {
         type: 'input',
         name: 'repo',
-        message: 'What is your URL repository ?',
+        message: `What is your URL ${chalk.yellow('repository')}?`,
         default: 'github.com'
       },
       {
         type: 'input',
         name: 'repoUsr',
-        message: 'What is your User or Org name of the repository ?',
+        message: `What is your ${chalk.yellow('User or Org')} name of the repository?`,
         default: 'me'
       },
       {
@@ -53,6 +53,7 @@ module.exports = class extends Generator {
         serviceName: svcName.toLowerCase(),
         servicePName: svcName,
         repoUrl: props.repo + '/' + props.repoUsr + '/' + svcName,
+        vendor: props.vendor,
         licenseText: ''
       };
       cb();
@@ -61,32 +62,59 @@ module.exports = class extends Generator {
 
   async writing() {
     console.log('Generating tree folders');
+    console.log(this.templateData);
     let pkgDir = this.destinationPath('pkg');
-    let srcDir = this.destinationPath(path.join('src/', this.repoUrl));
+    let srcDir = this.destinationPath(path.join('src/', this.templateData.repoUrl));
     let binDir = this.destinationPath('bin');
 
     mkdir.sync(pkgDir);
     mkdir.sync(srcDir);
     mkdir.sync(binDir);
 
-    this.fs.copyTpl(this.sourceRoot() + '/*', '/', this.templateData);
+    this.fs.copyTpl(this.sourceRoot() + '/*', srcDir, this.templateData);
+
+    this.fs.copyTpl(this.sourceRoot() + '/.*', srcDir, this.templateData);
+
     this.fs.copyTpl(
-      this.sourceRoot() + '/__svc_name__pb/**',
-      '/' + this.templateData.serviceName + '/',
+      this.sourceRoot() + '/.vscode/**',
+      path.join(srcDir, '.vscode'),
       this.templateData
     );
-    this.fs.copyTpl(this.sourceRoot() + '/.vscode/**', '/.vscode/', this.templateData);
+
+    this.fs.copyTpl(
+      this.sourceRoot() + '/pkg/**/*',
+      path.join(srcDir, 'pkg'),
+      this.templateData
+    );
+
+    this.fs.copyTpl(
+      this.sourceRoot() + '/cmd/**/*',
+      path.join(srcDir, 'cmd'),
+      this.templateData
+    );
+
     this.fs.copyTpl(
       this.sourceRoot() + '/deployment/**',
-      '/deployment/',
+      path.join(srcDir, 'deployment'),
       this.templateData
     );
-    this.fs.copyTpl(this.sourceRoot() + '/server/**', '/server/', this.templateData);
-    this.fs.copyTpl(this.sourceRoot() + '/state/**', '/state/', this.templateData);
-    this.fs.copyTpl(this.sourceRoot() + '/vendor/**', '/vendor/', this.templateData);
-    this.fs.move(
-      this.sourceRoot() + '/__svc_name__.proto',
-      this.templateData.serviceName + '.proto'
+
+    this.fs.copyTpl(
+      this.sourceRoot() + '/vendor/**',
+      path.join(srcDir, 'vendor'),
+      this.templateData
     );
+
+    this.fs.move(
+      path.join(srcDir, '__svc_name__.proto'),
+      path.join(srcDir, this.templateData.serviceName + '.proto')
+    );
+
+    this.fs.move(
+      path.join(srcDir, 'pkg', '__svc_name__pb', '*'),
+      path.join(srcDir, 'pkg', this.templateData.serviceName + 'pb')
+    );
+
+    this.fs.delete(path.join(srcDir, 'pkg', '__svc_name__pb'));
   }
 };

@@ -19,7 +19,7 @@ import (
 	"github.com/wercker/pkg/log"
 	"github.com/wercker/pkg/trace"
 
-	"<%=repoUrl%>/<%=serviceName%>pb"
+	"<%=repoUrl%>/pkg/<%=serviceName%>pb"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
