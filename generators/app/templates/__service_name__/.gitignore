@@ -5,6 +5,7 @@ pkg
 # tools
 <% if (vendor === false) { %>
 vendor
+!vendor/vendor.json
 <% } %>
 debug
 

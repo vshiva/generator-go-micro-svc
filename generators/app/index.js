@@ -4,6 +4,7 @@ const chalk = require('chalk');
 const yosay = require('yosay');
 const path = require('path');
 const mkdir = require('mkdirp');
+const camelCase = require('camelcase');
 
 module.exports = class extends Generator {
   paths() {
@@ -34,7 +35,7 @@ module.exports = class extends Generator {
         type: 'input',
         name: 'repoUsr',
         message: `What is your ${chalk.yellow('User or Org')} name of the repository?`,
-        default: 'me'
+        default: process.env.USER || 'me'
       },
       {
         type: 'confirm',
@@ -48,10 +49,10 @@ module.exports = class extends Generator {
     return this.prompt(prompts).then(props => {
       // To access props later use this.props.someAnswer;
       this.props = props;
-      const svcName = props.serviceName.replace(/\s+/g, '');
+      const svcName = camelCase(props.serviceName);
       this.templateData = {
-        serviceName: svcName.toLowerCase(),
-        servicePName: svcName,
+        serviceName: svcName,
+        servicePName: svcName.charAt(0).toUpperCase() + svcName.slice(1),
         repoUrl: props.repo + '/' + props.repoUsr + '/' + svcName,
         vendor: props.vendor,
         licenseText: ''
@@ -111,10 +112,10 @@ module.exports = class extends Generator {
     );
 
     this.fs.move(
-      path.join(srcDir, 'pkg', '__svc_name__pb', '*'),
-      path.join(srcDir, 'pkg', this.templateData.serviceName + 'pb')
+      path.join(srcDir, 'cmd', '__service_name__', '*'),
+      path.join(srcDir, 'cmd', this.templateData.serviceName)
     );
 
-    this.fs.delete(path.join(srcDir, 'pkg', '__svc_name__pb'));
+    this.fs.delete(path.join(srcDir, 'cmd', '__service_name__'));
   }
 };

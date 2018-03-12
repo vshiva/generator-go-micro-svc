@@ -1,15 +1,15 @@
 syntax = "proto3";
 
-package test;
+package api;
 
-option go_package = "testpb";
+option go_package = "api";
 
 import "google/api/annotations.proto";
 
-service Test {
+service <%=servicePName%> {
   rpc Action(ActionRequest) returns (ActionResponse) {
     option (google.api.http) = {
-      post: "/api/v3/test/action"
+      post: "/api/v1/action"
       body: "*"
     };
   }

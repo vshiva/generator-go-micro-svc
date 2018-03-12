@@ -19,7 +19,7 @@ import (
 	"github.com/wercker/pkg/log"
 	"github.com/wercker/pkg/trace"
 
-	"<%=repoUrl%>/pkg/<%=serviceName%>pb"
+	"<%=repoUrl%>/pkg/api"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -77,7 +77,7 @@ var gatewayAction = func(c *cli.Context) error {
 		grpc.WithUnaryInterceptor(otgrpc.OpenTracingClientInterceptor(tracer)), // opentracing (outgoing)
 	}
 
-	err = <%=serviceName%>pb.RegisterTestHandlerFromEndpoint(ctx, mux, o.Host, opts)
+	err = api.Register<%=servicePName%>HandlerFromEndpoint(ctx, mux, o.Host, opts)
 	if err != nil {
 		log.WithError(err).Error("Unable to register handler from Endpoint")
 		return errorExitCode

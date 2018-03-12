@@ -14,7 +14,7 @@ import (
 	grpcmw "github.com/mwitkow/go-grpc-middleware"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
-	"<%=repoUrl%>/pkg/<%=serviceName%>pb"
+	"<%=repoUrl%>/pkg/api"
 	"<%=repoUrl%>/pkg/server"
 	"<%=repoUrl%>/pkg/state"
 	"github.com/wercker/pkg/conf"
@@ -115,7 +115,7 @@ var serverAction = func(c *cli.Context) error {
 	}
 
 	s := grpc.NewServer(grpcmw.WithUnaryServerChain(interceptors...))
-	<%=serviceName%>pb.RegisterTestServer(s, server)
+	api.Register<%=servicePName%>Server(s, server)
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(s)
 

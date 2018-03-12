@@ -7,8 +7,9 @@ set -e
 CUSTOM_IMPORTS=""
 
 LOCAL=$(dirname $PWD)
+echo $LOCAL
 
-GENERATOR_PATH=${GENERATOR_PATH:?"GENERATOR_PATH is required for local runs"}
+GENERATOR_PATH="$LOCAL/../cmd/igenerator"
 ROOT=$LOCAL
 GEN="go run $GENERATOR_PATH/main.go"
 TEMPLATE_DIR="$GENERATOR_PATH"
