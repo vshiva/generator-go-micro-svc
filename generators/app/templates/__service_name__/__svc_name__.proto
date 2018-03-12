@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package <%=serviceName%>;
+
+option go_package = "<%=serviceName%>pb";
+
+import "google/api/annotations.proto";
+
+service Test {
+  rpc Action(ActionRequest) returns (ActionResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/<%=serviceName%>/action"
+      body: "*"
+    };
+  }
+}
+
+message ActionRequest {
+  string resourceApplicationId = 1;
+  string resourceUserId = 2;
+  Resource resource = 3;
+}
+
+message ActionResponse {
+  bool success = 1;
+}
+
+message Resource {
+  string kind = 1;
+}

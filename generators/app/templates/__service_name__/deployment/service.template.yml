@@ -1,0 +1,22 @@
+---
+kind: Service
+apiVersion: v1
+metadata:
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9102"
+  name: <%=serviceName%>
+spec:
+  ports:
+    - name: server
+      port: 80
+      targetPort: 24775
+      protocol: TCP
+    - name: gateway
+      port: 8080
+      targetPort: 24776
+      protocol: TCP
+    - name: http-metrics
+      port: 9102
+  selector:
+    app: <%=serviceName%>

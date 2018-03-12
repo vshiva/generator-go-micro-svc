@@ -1,0 +1,7 @@
+{
+  "go.useLanguageServer": true,
+  "go.formatOnSave": true,
+  "files.exclude": {
+    "vendor/**/*": true
+  }
+}

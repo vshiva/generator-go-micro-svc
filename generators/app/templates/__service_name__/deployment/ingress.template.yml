@@ -1,0 +1,19 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: <%=serviceName%>
+spec:
+  tls:
+  - hosts:
+    - ${TPL_INGRESS_HOST}
+    - inbox-${TPL_INGRESS_HOST}
+    secretName: ${TPL_INGRESS_HOST}
+  rules:
+    - host: ${TPL_INGRESS_HOST}
+      http:
+        paths:
+        - path: /api/v1/<%=serviceName%>
+          backend:
+            serviceName: <%=serviceName%>
+            servicePort: 8080

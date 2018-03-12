@@ -1,0 +1,85 @@
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: <%=serviceName%>
+  annotations:
+    kubernetes.io/change-cause: Upgrade to ${WERCKER_GIT_BRANCH}-${WERCKER_GIT_COMMIT} by ${WERCKER_STARTED_BY}
+  labels:
+    branch: ${WERCKER_GIT_BRANCH}
+    commit: ${WERCKER_GIT_COMMIT}
+spec:
+  replicas: ${TPL_REPLICAS:-1}
+  selector:
+    matchLabels:
+      app: <%=serviceName%>
+  template:
+    metadata:
+      labels:
+        app: <%=serviceName%>
+        branch: ${WERCKER_GIT_BRANCH}
+        commit: ${WERCKER_GIT_COMMIT}
+    spec:
+      imagePullSecrets:
+      - name: quay-readonly
+      nodeSelector:
+        caste: patrician
+      containers:
+
+      - name: server
+        image: quay.io/wercker/<%=serviceName%>:${WERCKER_GIT_BRANCH}-${WERCKER_GIT_COMMIT}
+        args: [
+          "server",
+          "--metrics-port=9102",
+        ]
+        ports:
+        - name: server
+          containerPort: 24775
+          protocol: TCP
+        - name: metrics
+          containerPort: 9102
+          protocol: TCP
+        env:
+          - name: MONGODB_URI
+            valueFrom:
+              secretKeyRef:
+                name: mongo
+                key: connectionstring
+        livenessProbe:
+          httpGet:
+            path: /live
+            port: 24777
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 24777
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+        resources:
+          requests:
+            cpu: 50m
+            memory: 25Mi
+          limits:
+            cpu: 500m
+            memory: 500Mi
+
+      - name: gateway
+        image: quay.io/wercker/<%=serviceName%>:${WERCKER_GIT_BRANCH}-${WERCKER_GIT_COMMIT}
+        args: [
+          "gateway"
+        ]
+        ports:
+        - name: gateway
+          containerPort: 24776
+          protocol: TCP
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+        resources:
+          requests:
+            cpu: 50m
+            memory: 25Mi
+          limits:
+            cpu: 500m
+            memory: 500Mi
