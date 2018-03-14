@@ -5,7 +5,7 @@ package state
 import (
 	"context"
 
-	"github.com/wercker/pkg/metrics"
+	"<%=repoUrl%>/pkg/metrics"
 
 	{{range .CustomImports}}
 	"{{.}}"

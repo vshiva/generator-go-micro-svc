@@ -2,12 +2,10 @@
 set -e
 
 (
-
 # Add any required imports here, separated by commas
 CUSTOM_IMPORTS=""
 
 LOCAL=$(dirname $PWD)
-echo $LOCAL
 
 GENERATOR_PATH="$LOCAL/../cmd/igenerator"
 ROOT=$LOCAL
