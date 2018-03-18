@@ -1,4 +1,4 @@
-# generator-go-micro-svc [![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url] [![Dependency Status][daviddm-image]][daviddm-url]
+# generator-go-micro-svc [![NPM version][npm-image]][npm-url]
 > Go Lang Micro Service
 
 ## Installation
