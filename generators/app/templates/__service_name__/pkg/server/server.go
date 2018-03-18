@@ -2,7 +2,7 @@
 package server
 
 import (
-	"<%=repoUrl%>/pkg/<%=serviceName%>pb"
+	"<%=repoUrl%>/pkg/api"
 	"<%=repoUrl%>/pkg/state"
 
 	"golang.org/x/net/context"
@@ -22,9 +22,9 @@ type <%=servicePName%>Server struct {
 
 // Action is a example implementation and should be replaced with an actual
 // implementation.
-func (s *<%=servicePName%>Server) Action(ctx context.Context, req *<%=serviceName%>pb.ActionRequest) (*<%=serviceName%>pb.ActionResponse, error) {
-	return &<%=serviceName%>pb.ActionResponse{}, nil
+func (s *<%=servicePName%>Server) Action(ctx context.Context, req *api.ActionRequest) (*api.ActionResponse, error) {
+	return &api.ActionResponse{}, nil
 }
 
 // Make sure that <%=servicePName%>Server implements the <%=serviceName%>pb.<%=servicePName%>Service interface.
-var _ <%=serviceName%>pb.<%=servicePName%>Server = &<%=servicePName%>Server{}
+var _ api.<%=servicePName%>Server = &<%=servicePName%>Server{}

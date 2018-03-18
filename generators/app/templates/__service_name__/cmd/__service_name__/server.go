@@ -14,13 +14,13 @@ import (
 	grpcmw "github.com/mwitkow/go-grpc-middleware"
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
-	"<%=repoUrl%>/pkg/<%=serviceName%>pb"
+	"<%=repoUrl%>/pkg/api"
 	"<%=repoUrl%>/pkg/server"
 	"<%=repoUrl%>/pkg/state"
-	"github.com/wercker/pkg/conf"
-	"github.com/wercker/pkg/health"
-	"github.com/wercker/pkg/log"
-	"github.com/wercker/pkg/trace"
+	"<%=repoUrl%>/pkg/util"
+	"<%=repoUrl%>/pkg/health"
+	"<%=repoUrl%>/pkg/log"
+	"<%=repoUrl%>/pkg/trace"
 	"google.golang.org/grpc"
 	mgo "gopkg.in/mgo.v2"
 	cli "gopkg.in/urfave/cli.v1"
@@ -30,7 +30,7 @@ var serverCommand = cli.Command{
 	Name:   "server",
 	Usage:  "start gRPC server",
 	Action: serverAction,
-	Flags:  append(serverFlags, conf.TraceFlags()...),
+	Flags:  append(serverFlags, util.TraceFlags()...),
 }
 
 var serverFlags = []cli.Flag{
@@ -115,7 +115,7 @@ var serverAction = func(c *cli.Context) error {
 	}
 
 	s := grpc.NewServer(grpcmw.WithUnaryServerChain(interceptors...))
-	<%=serviceName%>pb.RegisterTestServer(s, server)
+	api.Register<%=servicePName%>Server(s, server)
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	grpc_prometheus.Register(s)
 
@@ -168,7 +168,7 @@ var serverAction = func(c *cli.Context) error {
 }
 
 type serverOptions struct {
-	*conf.TraceOptions
+	*util.TraceOptions
 
 	MongoDatabase string
 	MongoURI      string
@@ -179,7 +179,7 @@ type serverOptions struct {
 }
 
 func parseServerOptions(c *cli.Context) (*serverOptions, error) {
-	traceOptions := conf.ParseTraceOptions(c)
+	traceOptions := util.ParseTraceOptions(c)
 
 	port := c.Int("port")
 	if !validPortNumber(port) {

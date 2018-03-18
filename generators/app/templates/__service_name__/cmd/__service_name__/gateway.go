@@ -14,12 +14,12 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
 	"github.com/pkg/errors"
-	"github.com/wercker/auth/middleware"
-	"github.com/wercker/pkg/conf"
-	"github.com/wercker/pkg/log"
-	"github.com/wercker/pkg/trace"
+	"<%=repoUrl%>/pkg/auth"
+	"<%=repoUrl%>/pkg/util"
+	"<%=repoUrl%>/pkg/log"
+	"<%=repoUrl%>/pkg/trace"
 
-	"<%=repoUrl%>/pkg/<%=serviceName%>pb"
+	"<%=repoUrl%>/pkg/api"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -29,7 +29,7 @@ var gatewayCommand = cli.Command{
 	Name:   "gateway",
 	Usage:  "Start gRPC gateway",
 	Action: gatewayAction,
-	Flags:  append(gatewayFlags, conf.TraceFlags()...),
+	Flags:  append(gatewayFlags, util.TraceFlags()...),
 }
 
 var gatewayFlags = []cli.Flag{
@@ -69,7 +69,7 @@ var gatewayAction = func(c *cli.Context) error {
 
 	// The following handlers will be called in reversed order (ie. bottom to top)
 	var handler http.Handler
-	handler = middleware.AuthTokenMiddleware(mux)   // authentication middleware
+	handler = auth.TokenMiddleware(mux)   // authentication middleware
 	handler = trace.HTTPMiddleware(handler, tracer) // opentracing + expose trace ID
 
 	opts := []grpc.DialOption{
@@ -77,7 +77,7 @@ var gatewayAction = func(c *cli.Context) error {
 		grpc.WithUnaryInterceptor(otgrpc.OpenTracingClientInterceptor(tracer)), // opentracing (outgoing)
 	}
 
-	err = <%=serviceName%>pb.RegisterTestHandlerFromEndpoint(ctx, mux, o.Host, opts)
+	err = api.Register<%=servicePName%>HandlerFromEndpoint(ctx, mux, o.Host, opts)
 	if err != nil {
 		log.WithError(err).Error("Unable to register handler from Endpoint")
 		return errorExitCode
@@ -117,14 +117,14 @@ var gatewayAction = func(c *cli.Context) error {
 }
 
 type gatewayOptions struct {
-	*conf.TraceOptions
+	*util.TraceOptions
 
 	Port int
 	Host string
 }
 
 func parseGatewayOptions(c *cli.Context) (*gatewayOptions, error) {
-	traceOptions := conf.ParseTraceOptions(c)
+	traceOptions := util.ParseTraceOptions(c)
 
 	port := c.Int("port")
 	if !validPortNumber(port) {

@@ -4,7 +4,7 @@ package state
 import (
 	"io"
 
-	"github.com/wercker/pkg/health"
+	"<%=repoUrl%>/pkg/health"
 )
 
 // Store provides access to data that is required for <%=licenseText%>.

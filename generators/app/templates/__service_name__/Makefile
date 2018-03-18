@@ -1,32 +1,30 @@
-PACKAGE  = hellogopher
-DATE    ?= $(shell date +%FT%T%z)
-VERSION ?= $(shell git describe --tags --always --dirty --match=v* 2> /dev/null || \
-			cat $(CURDIR)/.version 2> /dev/null || echo v0)
-GOPATH   = $(CURDIR)/.gopath~
+PACKAGE  = <%=serviceName%>
+DATE     = $(shell date +%s)
 BIN      = $(GOPATH)/bin
-BASE     = $(GOPATH)/src/$(PACKAGE)
+BASE     = $(GOPATH)/src/<%=repoUrl%>
 PKGS     = $(or $(PKG),$(shell cd $(BASE) && env GOPATH=$(GOPATH) $(GO) list ./... | grep -v "^$(PACKAGE)/vendor/"))
 TESTPKGS = $(shell env GOPATH=$(GOPATH) $(GO) list -f '{{ if or .TestGoFiles .XTestGoFiles }}{{ .ImportPath }}{{ end }}' $(PKGS))
 
-GO      = go
-GODOC   = godoc
-GOFMT   = gofmt
-GLIDE   = glide
-TIMEOUT = 15
+COMPILED      ?= $(shell date +%FT%T%z)
+PATCH_VERSION ?= $(shell if [ -z "$(BUILD_NUMBER)" ] && [ "$(BUILD_NUMBER)xxx" == "xxx" ]; then echo "dev"; else echo $(BUILD_NUMBER); fi)
+GIT_COMMIT    ?= $(shell git describe --tags --always --dirty --match=v* 2> /dev/null || echo unknown)
+
+GO       = go
+GODOC    = godoc
+GOFMT    = gofmt
+DOCKER   = docker
+TIMEOUT  = 15
+GOVENDOR = govendor
+
+LD_FLAGS = "-X <%=repoUrl%>.PatchVersion=$(PATCH_VERSION) -X <%=repoUrl%>.Compiled=$(DATE) -X <%=repoUrl%>.GitCommit=$(GIT_COMMIT)"
+DOCKER_BUILD_ARGS = '--build-arg LD_FLAGS=${LD_FLAGS}'
+
 V = 0
 Q = $(if $(filter 1,$V),,@)
 M = $(shell printf "\033[34;1m▶\033[0m")
 
 .PHONY: all
-all: fmt lint vendor | $(BASE) ; $(info $(M) building executable…) @ ## Build program binary
-	$Q cd $(BASE) && $(GO) build \
-		-tags release \
-		-ldflags '-X $(PACKAGE)/cmd.Version=$(VERSION) -X $(PACKAGE)/cmd.BuildDate=$(DATE)' \
-		-o bin/$(PACKAGE) main.go
-
-$(BASE): ; $(info $(M) setting GOPATH…)
-	@mkdir -p $(dir $@)
-	@ln -sf $(CURDIR) $@
+all: fmt lint vendor gen build
 
 # Tools
 
@@ -101,20 +99,28 @@ fmt: ; $(info $(M) running gofmt…) @ ## Run gofmt on all source files
 	 done ; exit $$ret
 
 # Dependency management
+.PHONY: vendor
+vendor: 
+	$Q cd $(BASE) && $(GOVENDOR) sync; $(info $(M) retrieving dependencies…)
 
-glide.lock: glide.yaml | $(BASE) ; $(info $(M) updating dependencies…)
-	$Q cd $(BASE) && $(GLIDE) update
-	@touch $@
-vendor: glide.lock | $(BASE) ; $(info $(M) retrieving dependencies…)
-	$Q cd $(BASE) && $(GLIDE) --quiet install
-	@ln -nsf . vendor/src
-	@touch $@
+.PHONY: gen
+gen: 
+	$Q cd $(BASE) && $(GOVENDOR) generate +local; $(info $(M) generating api and metrics & trace store …)
+
+.PHONY: build
+build:
+	$Q cd $(BASE) && $(GO) build -ldflags $(LD_FLAGS) \
+		-o bin/$(PACKAGE) ./cmd/<%=serviceName%> ; $(info $(M) building executable…)
+
+.PHONY: docker-build
+docker-build:
+	$Q cd $(BASE) && $(DOCKER) build '$(DOCKER_BUILD_ARGS)' \
+		-t <%=serviceName%>:$(PATCH_VERSION) .; $(info $(M) building docker image…)
 
 # Misc
 
 .PHONY: clean
 clean: ; $(info $(M) cleaning…)	@ ## Cleanup everything
-	@rm -rf $(GOPATH)
 	@rm -rf bin
 	@rm -rf test/tests.* test/coverage.*
 
@@ -122,7 +128,3 @@ clean: ; $(info $(M) cleaning…)	@ ## Cleanup everything
 help:
 	@grep -E '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
 		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
-
-.PHONY: version
-version:
-	@echo $(VERSION)

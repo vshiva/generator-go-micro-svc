@@ -2,13 +2,12 @@
 set -e
 
 (
-
 # Add any required imports here, separated by commas
 CUSTOM_IMPORTS=""
 
 LOCAL=$(dirname $PWD)
 
-GENERATOR_PATH=${GENERATOR_PATH:?"GENERATOR_PATH is required for local runs"}
+GENERATOR_PATH="$LOCAL/../cmd/igenerator"
 ROOT=$LOCAL
 GEN="go run $GENERATOR_PATH/main.go"
 TEMPLATE_DIR="$GENERATOR_PATH"
