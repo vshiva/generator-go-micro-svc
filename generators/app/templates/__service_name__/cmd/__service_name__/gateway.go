@@ -69,7 +69,7 @@ var gatewayAction = func(c *cli.Context) error {
 
 	// The following handlers will be called in reversed order (ie. bottom to top)
 	var handler http.Handler
-	handler = auth.AuthTokenMiddleware(mux)   // authentication middleware
+	handler = auth.TokenMiddleware(mux)   // authentication middleware
 	handler = trace.HTTPMiddleware(handler, tracer) // opentracing + expose trace ID
 
 	opts := []grpc.DialOption{

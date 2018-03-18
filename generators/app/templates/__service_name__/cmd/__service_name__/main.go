@@ -3,11 +3,13 @@ package main
 
 import (
 	"os"
-
+	"fmt"
+	"runtime"
 	"<%=repoUrl%>/pkg/log"
 	cli "gopkg.in/urfave/cli.v1"
 	"github.com/opentracing/opentracing-go"
 	"<%=repoUrl%>/pkg/util"
+	"<%=repoUrl%>"
 	"<%=repoUrl%>/pkg/trace"
 )
 
@@ -31,14 +33,20 @@ func getTracer(o *util.TraceOptions, serviceName string, port int) (opentracing.
 }
 
 func main() {
+	cli.VersionPrinter = func(c *cli.Context) {
+		fmt.Printf("%s\n Version:  %s\n Git Commit:  %s\n Go Version:  %s\n OS/Arch:  %s/%s\n Built:  %s\n",
+			c.App.Name, c.App.Version, mysvc.GitCommit,
+			runtime.Version(), runtime.GOOS, runtime.GOARCH,c.App.Compiled.String())
+	}
+
 	app := cli.NewApp()
 
 	app.Name = "<%=serviceName%>"
 	app.Copyright = "(c) 2018 Copyright"
 	app.Usage = "<%=servicePName%> description"
 
-	app.Version = Version()
-	app.Compiled = CompiledAt()
+	app.Version = <%=serviceName%>.Version()
+	app.Compiled = <%=serviceName%>.CompiledAt()
 	app.Before = log.SetupLogging
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{

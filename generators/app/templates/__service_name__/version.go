@@ -1,5 +1,5 @@
 <%=licenseText%>
-package main
+package <%=serviceName%>
 
 import (
 	"fmt"
@@ -12,10 +12,10 @@ var (
 	GitCommit = ""
 
 	// MajorVersion is the semver major version.
-	MajorVersion = "1"
+	MajorVersion = "0"
 
 	// MinorVersion is the semver minor version.
-	MinorVersion = "0"
+	MinorVersion = "1"
 
 	// PatchVersion is the semver patch version. (use 0 for dev, build process
 	// will inject a build number)
@@ -33,6 +33,10 @@ func init() {
 
 // Version returns a semver compatible version for this build.
 func Version() string {
+	if PatchVersion == "" {
+		PatchVersion = "0"
+	}
+	
 	return fmt.Sprintf("%s.%s.%s", MajorVersion, MinorVersion, PatchVersion)
 }
 
