@@ -99,6 +99,10 @@ fmt: ; $(info $(M) running gofmt…) @ ## Run gofmt on all source files
 	 done ; exit $$ret
 
 # Dependency management
+.PHONY: install-vendor
+install-vendor: 
+	$Q cd $(BASE) && $(GO) get -u github.com/kardianos/govendor; $(info $(M) installing $(GOVENDOR)…)
+
 .PHONY: vendor
 vendor: 
 	$Q cd $(BASE) && $(GOVENDOR) sync; $(info $(M) retrieving dependencies…)

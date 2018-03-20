@@ -35,7 +35,7 @@ func getTracer(o *util.TraceOptions, serviceName string, port int) (opentracing.
 func main() {
 	cli.VersionPrinter = func(c *cli.Context) {
 		fmt.Printf("%s\n Version:  %s\n Git Commit:  %s\n Go Version:  %s\n OS/Arch:  %s/%s\n Built:  %s\n",
-			c.App.Name, c.App.Version, mysvc.GitCommit,
+			c.App.Name, c.App.Version, <%=serviceName%>.GitCommit,
 			runtime.Version(), runtime.GOOS, runtime.GOARCH,c.App.Compiled.String())
 	}
 
