@@ -41,7 +41,7 @@ func main() {
 
 	app := cli.NewApp()
 
-	app.Name = "<%=serviceName%>"
+	app.Name = "<%=pkgName%>"
 	app.Copyright = "(c) 2018 Copyright"
 	app.Usage = "<%=servicePName%> description"
 

@@ -11,7 +11,7 @@ import (
 
 const (
 	// TraceHTTPHeader is the header that will be used to expose the trace ID.
-	TraceHTTPHeader = "X-Wercker-Trace-Id"
+	TraceHTTPHeader = "x-<%=pkgName%>-trace-id"
 
 	// TraceFieldKey is the key that will be used for the field key.
 	TraceFieldKey = "traceID"

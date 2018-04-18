@@ -49,12 +49,22 @@ module.exports = class extends Generator {
     return this.prompt(prompts).then(props => {
       // To access props later use this.props.someAnswer;
       this.props = props;
-      const svcName = camelCase(props.serviceName);
+      const pkgName = props.serviceName
+        .trim()
+        .replace(/  +/g, ' ')
+        .split(' ')
+        .join('-')
+        .replace('_', '-')
+        .replace(/[^0-9a-z-]/gi, '')
+        .replace(/-+/g, '-')
+        .toLowerCase();
+      const svcName = camelCase(pkgName);
       this.templateData = {
         serviceName: svcName,
         servicePName: svcName.charAt(0).toUpperCase() + svcName.slice(1),
-        repoUrl: props.repo + '/' + props.repoUsr + '/' + svcName,
+        repoUrl: props.repo + '/' + props.repoUsr + '/' + pkgName,
         vendor: props.vendor,
+        pkgName: pkgName,
         licenseText: ''
       };
       cb();

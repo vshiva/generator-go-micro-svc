@@ -1,4 +1,4 @@
-PACKAGE  = <%=serviceName%>
+PACKAGE  = <%=pkgName%>
 DATE     = $(shell date +%s)
 BIN      = $(GOPATH)/bin
 BASE     = $(GOPATH)/src/<%=repoUrl%>
@@ -119,7 +119,7 @@ build:
 .PHONY: docker-build
 docker-build:
 	$Q cd $(BASE) && $(DOCKER) build '$(DOCKER_BUILD_ARGS)' \
-		-t <%=serviceName%>:$(PATCH_VERSION) .; $(info $(M) building docker image…)
+		-t <%=pkgName%>:$(PATCH_VERSION) .; $(info $(M) building docker image…)
 
 # Misc
 
