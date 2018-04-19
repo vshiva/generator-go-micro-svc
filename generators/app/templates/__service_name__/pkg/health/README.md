@@ -32,42 +32,6 @@ if probe, ok := interface{}(store).(health.Probe); ok {
 }
 ```
 
-## govendor
-
-Install this package with govendor:
-
-```
-govendor fetch -v github.com/wercker/pkg/health
-```
-
-## wercker.yml
-
-Install this package during a wercker run:
-
-```yaml
-build:
-  steps:
-    - script:
-        name: install govendor
-        code: go get -u github.com/kardianos/govendor
-
-    - script:
-        name: force "go get" over ssh
-        code: git config --global url."git@github.com:".insteadOf "https://github.com/"
-
-    - add-ssh-key:
-        keyname: WALTERBOT
-
-    - add-to-known_hosts:
-        hostname: github.com
-        fingerprint: 16:27:ac:a5:76:28:2d:36:63:1b:56:4d:eb:df:a6:48
-        type: rsa
-
-    - script:
-        name: install depdendencies
-        code: govendor sync
-```
-
 ## MongoDB example
 
 MongDB session probe, including trying to recover from an `io.EOF` error:

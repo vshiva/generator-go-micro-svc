@@ -1,4 +1,4 @@
-# wercker/pkg/log
+# <%=repoUrl%>/pkg/log
 
 The package contains several
 
@@ -6,14 +6,9 @@ The package contains several
 
 ...
 
-# Guidelines
+### Only use `<%=repoUrl%>/pkg/log`
 
-The following are the guidelines that Wercker uses when it comes to logging.
-This should be read by Wercker employees, and can be used during code reviews.
-
-### Only use `github.com/wercker/pkg/log`
-
-Always use `github.com/wercker/pkg/log` when writing logs. Do not use
+Always use `<%=repoUrl%>/pkg/log` when writing logs. Do not use
 `github.com/sirupsen/logrus`, `log` or `fmt.Print*` for logs.
 
 ### Use `log.FromContext`
@@ -228,10 +223,6 @@ Use Info for normal messages.
 
 Use Debug for verbose message, it is possible that these will not be displayed.
 
-## Dates
-
-Note, logging a `time.Time` struct directly as a field will not comply with the
-Wercker guidelines.
 
 ### Always use the UTC timezone
 
