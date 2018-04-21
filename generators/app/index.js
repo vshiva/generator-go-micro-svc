@@ -105,8 +105,8 @@ module.exports = class extends Generator {
     );
 
     this.fs.copyTpl(
-      this.sourceRoot() + '/deployment/**',
-      path.join(srcDir, 'deployment'),
+      this.sourceRoot() + '/helm/**',
+      path.join(srcDir, 'helm'),
       this.templateData
     );
 

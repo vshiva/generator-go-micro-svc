@@ -36,17 +36,17 @@ var serverCommand = cli.Command{
 var serverFlags = []cli.Flag{
 	cli.IntFlag{
 		Name:   "port",
-		Value:  24775,
+		Value:  19991,
 		EnvVar: "PORT",
 	},
 	cli.IntFlag{
 		Name:   "health-port",
-		Value:  24777,
+		Value:  19992,
 		EnvVar: "HEALTH_PORT",
 	},
 	cli.IntFlag{
 		Name:   "metrics-port",
-		Value:  24778,
+		Value:  9102,
 		EnvVar: "METRICS_PORT",
 	},
 	cli.StringFlag{
