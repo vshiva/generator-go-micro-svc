@@ -1,6 +1,6 @@
 {
   "name": "generator-go-micro-svc",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Go Lang Micro Service",
   "homepage": "https://github.com/vshiva/generator-go-micro-svc",
   "author": {
