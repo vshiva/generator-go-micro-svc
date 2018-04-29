@@ -23,6 +23,7 @@ Go Micro service based on a blueprint that
 Make sure you have setup $GOPATH. Then, `go get -u` the following packages:
 
 ```sh
+go get -u github.com/kardianos/govendor
 go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
 go get -u github.com/golang/protobuf/protoc-gen-go
