@@ -109,6 +109,7 @@ module.exports = class extends Generator {
       const svcName = camelCase(pkgName);
       this.templateData = {
         serviceName: svcName,
+        serviceLName: svcName.toLowerCase(),
         servicePName: svcName.charAt(0).toUpperCase() + svcName.slice(1),
         repoUrl: props.repo + '/' + props.repoUsr + '/' + pkgName,
         vendor: props.vendor,

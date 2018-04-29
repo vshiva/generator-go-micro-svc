@@ -14,7 +14,7 @@ protoc="protoc \
 
 cd $LOCAL
 
-echo "Generating gRPC server, gateway, swagger, flow"
+echo "Generating gRPC server, gateway, swagger"
 $protoc --go_out=plugins=grpc:$ROOT/pkg/api \
         --grpc-gateway_out=logtostderr=true,request_context=true:$ROOT/pkg/api \
         --swagger_out=logtostderr=true:$ROOT/pkg/api \

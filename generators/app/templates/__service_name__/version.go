@@ -1,5 +1,5 @@
 <%=licenseText%>
-package <%=serviceName%>
+package <%=serviceLName%>
 
 import (
 	"fmt"
