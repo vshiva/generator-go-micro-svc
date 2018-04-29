@@ -96,9 +96,12 @@ var gatewayAction = func(c *cli.Context) error {
 		Addr:    fmt.Sprintf(":%d", o.Port),
 		Handler: handler,
 	}
+	
 	// Start Gateway server in separate goroutine
 	go func() {
-		log.WithField("port", o.Port).Info("Starting server")
+		log.WithFields(log.Fields{
+			"port":     o.Port,
+			"grpcHost": o.Host}).Info("Starting gateway server")
 		err := s.ListenAndServe()
 		errc <- errors.Wrap(err, "gateway returned an error")
 	}()

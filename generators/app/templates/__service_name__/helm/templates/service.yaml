@@ -10,8 +10,8 @@ metadata:
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.externalPort }}
-      targetPort: {{ .Values.service.internalPort }}
+    - port: {{ .Values.service.gatewayPort }}
+      targetPort: {{ .Values.service.gatewayPort }}
       protocol: TCP
       name: {{ .Values.service.name }}
   selector:

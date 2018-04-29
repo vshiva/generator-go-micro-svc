@@ -60,8 +60,8 @@ var serverFlags = []cli.Flag{
 	},
 	cli.StringFlag{
 		Name:  "state-store",
-		Usage: "storage driver, currently supported [mongo]",
-		Value: "mongo",
+		Usage: "storage driver, currently supported [memory,mongo]",
+		Value: "memory",
 	},
 }
 
@@ -222,6 +222,8 @@ func parseServerOptions(c *cli.Context) (*serverOptions, error) {
 
 func getStore(o *serverOptions) (state.Store, error) {
 	switch o.StateStore {
+	case "memory":
+		return state.NewInMemoryStore(), nil
 	case "mongo":
 		return getMongoStore(o)
 	default:

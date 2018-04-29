@@ -7,24 +7,14 @@ option go_package = "api";
 import "google/api/annotations.proto";
 
 service <%=servicePName%> {
-  rpc Action(ActionRequest) returns (ActionResponse) {
+  rpc EchoMessage(Echo) returns (Echo) {
     option (google.api.http) = {
-      post: "/api/v1/action"
+      post: "/api/v1/echo"
       body: "*"
     };
   }
 }
 
-message ActionRequest {
-  string resourceApplicationId = 1;
-  string resourceUserId = 2;
-  Resource resource = 3;
-}
-
-message ActionResponse {
-  bool success = 1;
-}
-
-message Resource {
-  string kind = 1;
+message Echo {
+  string msg = 1;
 }

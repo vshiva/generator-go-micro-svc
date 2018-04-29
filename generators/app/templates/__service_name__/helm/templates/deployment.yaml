@@ -24,11 +24,11 @@ spec:
           ]
           ports:
             - name: server
-            containerPort: {{ .Values.service.serverPort }}
-            protocol: TCP
+              containerPort: {{ .Values.service.serverPort }}
+              protocol: TCP
             - name: metrics
-            containerPort: {{ .Values.service.metricsPort }}
-            protocol: TCP
+              containerPort: {{ .Values.service.metricsPort }}
+              protocol: TCP
           livenessProbe:
             httpGet:
               path: /live
@@ -39,7 +39,6 @@ spec:
               port: {{ .Values.service.healthPort }}
           securityContext:
             readOnlyRootFilesystem: true
-            runAsNonRoot: true
           resources:
 {{ toYaml .Values.resources | indent 12 }}
         - name: gateway
@@ -52,7 +51,6 @@ spec:
             - containerPort: {{ .Values.service.gatewayPort }}
           securityContext:
             readOnlyRootFilesystem: true
-            runAsNonRoot: true
           resources:
 {{ toYaml .Values.resources | indent 12 }}
     {{- if .Values.nodeSelector }}

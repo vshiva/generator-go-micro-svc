@@ -3,15 +3,15 @@
 # Declare variables to be passed into your templates.
 replicaCount: 1
 image:
-  repository: <%=pkgName%>
-  tag: stable
+  repository: <%=containerRegistry%>/<%=repoName%>/<%=pkgName%>
+  tag: dev
   pullPolicy: IfNotPresent
 service:
   name: <%=pkgName%>
   type: ClusterIP
   serverPort: 19991
-  heathPort: 19992
-  gatewayPort: 19993
+  healthPort: 19992
+  gatewayPort: 19990
   metricsPort: 9102
 ingress:
   enabled: false

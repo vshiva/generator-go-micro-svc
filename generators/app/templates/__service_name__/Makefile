@@ -6,7 +6,7 @@ PKGS     = $(or $(PKG),$(shell cd $(BASE) && env GOPATH=$(GOPATH) $(GO) list ./.
 TESTPKGS = $(shell env GOPATH=$(GOPATH) $(GO) list -f '{{ if or .TestGoFiles .XTestGoFiles }}{{ .ImportPath }}{{ end }}' $(PKGS))
 
 COMPILED      ?= $(shell date +%FT%T%z)
-PATCH_VERSION ?= $(shell if [ -z "$(BUILD_NUMBER)" ] && [ "$(BUILD_NUMBER)xxx" == "xxx" ]; then echo "dev"; else echo $(BUILD_NUMBER); fi)
+PATCH_VERSION ?= $(shell if [ -z "$(BUILD_TAG)" ] && [ "$(BUILD_TAG)xxx" == "xxx" ]; then echo "dev"; else echo $(BUILD_TAG); fi)
 GIT_COMMIT    ?= $(shell git describe --tags --always --dirty --match=v* 2> /dev/null || echo unknown)
 
 GO       = go
@@ -118,8 +118,12 @@ build:
 
 .PHONY: docker-build
 docker-build:
-	$Q cd $(BASE) && $(DOCKER) build '$(DOCKER_BUILD_ARGS)' \
-		-t <%=pkgName%>:$(PATCH_VERSION) .; $(info $(M) building docker image…)
+	$Q cd $(BASE) && $(DOCKER) build '$(DOCKER_BUILD_ARGS)' -t <%=pkgName%>:$(PATCH_VERSION) . && \
+		$(DOCKER) tag <%=pkgName%>:$(PATCH_VERSION) <%=containerRegistry%>/<%=repoName%>/<%=pkgName%>:$(PATCH_VERSION); $(info $(M) building docker image…)
+
+.PHONY: docker-push
+docker-push: docker-build
+	$Q $(DOCKER) push <%=containerRegistry%>/<%=repoName%>/<%=pkgName%>:$(PATCH_VERSION); $(info $(M) pushing docker image…)
 
 # Misc
 

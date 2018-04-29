@@ -20,10 +20,10 @@ type <%=servicePName%>Server struct {
 	store state.Store
 }
 
-// Action is a example implementation and should be replaced with an actual
+// EchoMessage is a example implementation and should be replaced with an actual
 // implementation.
-func (s *<%=servicePName%>Server) Action(ctx context.Context, req *api.ActionRequest) (*api.ActionResponse, error) {
-	return &api.ActionResponse{}, nil
+func (s *<%=servicePName%>Server) EchoMessage(ctx context.Context, req *api.Echo) (*api.Echo, error) {
+	return req, nil
 }
 
 // Make sure that <%=servicePName%>Server implements the <%=serviceName%>pb.<%=servicePName%>Service interface.
