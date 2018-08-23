@@ -13,19 +13,9 @@ const prompts = [
     default: 'mysvc'
   },
   {
-    type: 'list',
+    type: 'input',
     name: 'repo',
     message: `What is your ${chalk.red('source repository')}?`,
-    choices: [
-      {
-        name: 'github.com',
-        value: 'github.com'
-      },
-      {
-        name: 'bitbucket.com',
-        value: 'bitbucket.com'
-      }
-    ],
     default: 'github.com',
     store: true
   },
