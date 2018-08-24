@@ -127,6 +127,12 @@ module.exports = class extends Generator {
     this.fs.copyTpl(this.sourceRoot() + '/.*', srcDir, this.templateData);
 
     this.fs.copyTpl(
+      this.sourceRoot() + '/.gitignore-template',
+      path.join(srcDir, '.gitignore'),
+      this.templateData
+    );
+
+    this.fs.copyTpl(
       this.sourceRoot() + '/.vscode/**',
       path.join(srcDir, '.vscode'),
       this.templateData
