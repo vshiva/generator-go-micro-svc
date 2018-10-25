@@ -14,7 +14,6 @@ GODOC    = godoc
 GOFMT    = gofmt
 DOCKER   = docker
 TIMEOUT  = 15
-GOVENDOR = govendor
 
 LD_FLAGS = "-X <%=repoUrl%>.PatchVersion=$(PATCH_VERSION) -X <%=repoUrl%>.Compiled=$(DATE) -X <%=repoUrl%>.GitCommit=$(GIT_COMMIT)"
 DOCKER_BUILD_ARGS = '--build-arg LD_FLAGS=${LD_FLAGS}'
@@ -24,29 +23,48 @@ Q = $(if $(filter 1,$V),,@)
 M = $(shell printf "\033[34;1m▶\033[0m")
 
 .PHONY: all
-all: fmt lint vendor gen build
+all: fmt gen lint build
 
 # Tools
 
 GOLINT = $(BIN)/golint
-$(BIN)/golint: | $(BASE) ; $(info $(M) building golint…)
-	$Q go get github.com/golang/lint/golint
+$(BIN)/golint: | $(BASE) ; $(info $(M) installing golint…)
+	$Q $(GO) get github.com/golang/lint/golint
 
 GOCOVMERGE = $(BIN)/gocovmerge
-$(BIN)/gocovmerge: | $(BASE) ; $(info $(M) building gocovmerge…)
-	$Q go get github.com/wadey/gocovmerge
+$(BIN)/gocovmerge: | $(BASE) ; $(info $(M) installing gocovmerge…)
+	$Q $(GO) get github.com/wadey/gocovmerge
 
 GOCOV = $(BIN)/gocov
-$(BIN)/gocov: | $(BASE) ; $(info $(M) building gocov…)
-	$Q go get github.com/axw/gocov/...
+$(BIN)/gocov: | $(BASE) ; $(info $(M) installing gocov…)
+	$Q $(GO) get github.com/axw/gocov/...
 
 GOCOVXML = $(BIN)/gocov-xml
-$(BIN)/gocov-xml: | $(BASE) ; $(info $(M) building gocov-xml…)
-	$Q go get github.com/AlekSi/gocov-xml
+$(BIN)/gocov-xml: | $(BASE) ; $(info $(M) installing gocov-xml…)
+	$Q $(GO) get github.com/AlekSi/gocov-xml
 
 GO2XUNIT = $(BIN)/go2xunit
-$(BIN)/go2xunit: | $(BASE) ; $(info $(M) building go2xunit…)
-	$Q go get github.com/tebeka/go2xunit
+$(BIN)/go2xunit: | $(BASE) ; $(info $(M) installing go2xunit…)
+	$Q $(GO) get github.com/tebeka/go2xunit
+
+GODEP = $(BIN)/dep
+$(BIN)/dep: | $(BASE) ; $(info $(M) installing dep…)
+	$Q $(GO) get -u github.com/golang/dep/cmd/dep
+
+PROTOC_GRPC_GATEWAY = $(BIN)/protoc-gen-grpc-gateway
+$(BIN)/protoc-gen-grpc-gateway: | $(BASE) ; $(info $(M) installing protoc-gen-grpc-gateway…)
+	$Q $(GO) get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+
+PROTOC_SWAGGER = $(BIN)/protoc-gen-swagger
+$(BIN)/protoc-gen-swagger: | $(BASE) ; $(info $(M) installing protoc-gen-swagger…)
+	$Q $(GO) get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+
+PROTOC_GO = $(BIN)/protoc-gen-go
+$(BIN)/protoc-gen-go: | $(BASE) ; $(info $(M) installing protoc-gen-go…)
+	$Q $(GO) get -u github.com/golang/protobuf/protoc-gen-go
+
+.PHONY: install-dependencies 
+install-dependencies: $(BIN)/golint $(BIN)/gocovmerge $(BIN)/gocov $(BIN)/gocov-xml $(BIN)/go2xunit $(BIN)/dep $(BIN)/protoc-gen-grpc-gateway $(BIN)/protoc-gen-swagger $(BIN)/protoc-gen-go   ## Install dependent go tools
 
 # Tests
 
@@ -99,30 +117,27 @@ fmt: ; $(info $(M) running gofmt…) @ ## Run gofmt on all source files
 	 done ; exit $$ret
 
 # Dependency management
-.PHONY: install-vendor
-install-vendor: 
-	$Q cd $(BASE) && $(GO) get -u github.com/kardianos/govendor; $(info $(M) installing $(GOVENDOR)…)
 
 .PHONY: vendor
 vendor: 
-	$Q cd $(BASE) && $(GOVENDOR) sync; $(info $(M) retrieving dependencies…)
+	$Q cd $(BASE) && $(GODEP) ensure -v; $(info $(M) retrieving dependencies…)
 
 .PHONY: gen
 gen: 
-	$Q cd $(BASE) && $(GOVENDOR) generate +local; $(info $(M) generating api and metrics & trace store …)
+	$Q cd $(BASE) && $(GO) generate ./pkg/api ./pkg/state; $(info $(M) generating api and metrics & trace store …)
 
 .PHONY: build
-build:
+build: gen  ## Build service
 	$Q cd $(BASE) && $(GO) build -ldflags $(LD_FLAGS) \
 		-o bin/$(PACKAGE) ./cmd/<%=serviceName%> ; $(info $(M) building executable…)
 
 .PHONY: docker-build
-docker-build:
+docker-build: ## Build docker image
 	$Q cd $(BASE) && $(DOCKER) build '$(DOCKER_BUILD_ARGS)' -t <%=pkgName%>:$(PATCH_VERSION) . && \
 		$(DOCKER) tag <%=pkgName%>:$(PATCH_VERSION) <%=containerRegistry%>/<%=repoName%>/<%=pkgName%>:$(PATCH_VERSION); $(info $(M) building docker image…)
 
 .PHONY: docker-push
-docker-push: docker-build
+docker-push: docker-build ## Build and publish docker image
 	$Q $(DOCKER) push <%=containerRegistry%>/<%=repoName%>/<%=pkgName%>:$(PATCH_VERSION); $(info $(M) pushing docker image…)
 
 # Misc
@@ -135,4 +150,4 @@ clean: ; $(info $(M) cleaning…)	@ ## Cleanup everything
 .PHONY: help
 help:
 	@grep -E '^[ a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
+		awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-25s\033[0m %s\n", $$1, $$2}'

@@ -64,14 +64,14 @@ func (s *Service) Shutdown(ctx context.Context) error {
 // healthcheck starts an infinite loop which will iterate over all probes to
 // see if there are unhealthy probes.
 func (s *Service) healthcheck() {
-	// TODO(bvdberg): Support stopping this infinite loop
+	// TODO: Support stopping this infinite loop
 	for {
 		healthy := true
 
 		// iterate all probes
 		s.mu.Lock()
 		for name, probe := range s.probes {
-			// TODO(bvdberg): Add
+			// TODO: Add
 			err := probe.Healthy()
 			if err != nil {
 				healthy = false

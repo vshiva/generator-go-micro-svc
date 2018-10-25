@@ -2,3 +2,4 @@ node_modules
 coverage
 .yo-rc.json
 yarn-error.log
+*.todo
