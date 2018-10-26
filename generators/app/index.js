@@ -160,12 +160,6 @@ module.exports = class extends Generator {
       this.templateData
     );
 
-    // This.fs.copyTpl(
-    //   this.sourceRoot() + '/vendor/**',
-    //   path.join(srcDir, 'vendor'),
-    //   this.templateData
-    // );
-
     this.fs.move(
       path.join(srcDir, '__svc_name__.proto'),
       path.join(srcDir, this.templateData.serviceName + '.proto')

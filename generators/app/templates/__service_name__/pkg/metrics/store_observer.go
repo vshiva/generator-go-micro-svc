@@ -3,9 +3,14 @@ package metrics
 
 import (
 	"time"
-
-	"github.com/prometheus/client_golang/prometheus"
+	"context"
+	
 	"<%=repoUrl%>/pkg/util"
+	"<%=repoUrl%>/pkg/log"
+
+	"go.opencensus.io/stats"
+	"go.opencensus.io/stats/view"
+	"go.opencensus.io/tag"
 )
 
 // labels are the labels that are send to prometheus
@@ -13,30 +18,60 @@ var labels = []string{
 	"method",
 }
 
+var (
+	// StoreCallLatency metric to represent the latency in milliseconds
+	storeCallLatency = stats.Float64("store/latency", "The latency in milliseconds per call", "ms")
+
+	// StoreCallCounter metric to represent the number of times store methods are called
+	storeCallCount = stats.Int64("store/calls", "number of store calls made", "1")
+
+	// StoreCallErrorCount metric to represent the number of times store methods are called
+	StoreCallErrorCount = stats.Int64("store/call_errors", "number of store calls that returned error", "1")
+)
+
+var (
+	// KeyMethod is the label/tag used while reporting metrics
+	KeyMethod, _ = tag.NewKey("method")
+)
+
 // NewStoreObserver creates a new StoreObserver
 func NewStoreObserver() *StoreObserver {
-	durationOpts := prometheus.HistogramOpts{
-		Name: "store_handling_seconds",
-		Help: "Histogram of response latency (seconds) of store calls that had been handled by the server",
+
+	storeCallLatencyView := &view.View{
+		Name:        "store_call/latency",
+		Measure:     storeCallLatency,
+		Description: "The distribution of the latencies",
+
+		// Latency in buckets:
+		// [>=0ms, >=25ms, >=50ms, >=75ms, >=100ms, >=200ms, >=400ms, >=600ms, >=800ms, >=1s, >=2s, >=4s, >=6s]
+		Aggregation: view.Distribution(0, 25, 50, 75, 100, 200, 400, 600, 800, 1000, 2000, 4000, 6000),
+		TagKeys:     []tag.Key{KeyMethod}}
+
+	storeCallCountView := &view.View{
+		Name:        "store_call/count",
+		Measure:     storeCallCount,
+		Description: "The number calls to the store methods",
+		Aggregation: view.Count(),
 	}
-	duration := prometheus.NewHistogramVec(durationOpts, labels)
 
-	counterOpts := prometheus.CounterOpts{
-		Name: "store_handled_total",
-		Help: "Total number of store calls completed on the server, regardless of success or failure",
+	storeCallErrorCountView := &view.View{
+		Name:        "store_call_error/count",
+		Measure:     StoreCallErrorCount,
+		Description: "The number store calls which returnd in error to the store methods",
+		Aggregation: view.Count(),
 	}
-	counter := prometheus.NewCounterVec(counterOpts, labels)
 
-	prometheus.MustRegister(duration)
-	prometheus.MustRegister(counter)
+	log.Debug("Registering store metrics views...")
+	// Register the views
+	if err := view.Register(storeCallLatencyView, storeCallCountView, storeCallErrorCountView); err != nil {
+		log.Fatalf("Failed to register views: %v", err)
+	}
 
-	return &StoreObserver{duration: duration, counter: counter}
+	return &StoreObserver{}
 }
 
 // StoreObserver encapsulates exposing of store specific metrics to Prometheus.
 type StoreObserver struct {
-	duration *prometheus.HistogramVec
-	counter  *prometheus.CounterVec
 }
 
 // defaultIgnoredMethods are methods which are commonly found on our stores and
@@ -54,8 +89,6 @@ func (s *StoreObserver) Preload(ifc interface{}, extraIgnoredMethods ...string) 
 			continue
 		}
 
-		s.counter.WithLabelValues(method)
-		s.duration.WithLabelValues(method)
 	}
 }
 
@@ -70,15 +103,18 @@ func shouldIgnore(method string, ignoredMethods []string) bool {
 }
 
 // Observe immediately increments the counter for method and returns a func
-// which will observe an metric item in duration based on the duration.
-func (s *StoreObserver) Observe(method string) func() {
-	start := time.Now()
+// which will observe an metric item in duration based on the duration
+func (s *StoreObserver) Observe(ctx context.Context, method string) func() {
+	ctx, err := tag.New(ctx, tag.Insert(KeyMethod, method))
+	if err != nil {
+		log.Fatalf("Failed to Observe method %s: %v", method, err)
+	}
 
-	counter := s.counter.WithLabelValues(method)
-	counter.Add(1)
+	stats.Record(ctx, storeCallCount.M(1)) // Counter to track a store call
+	startTime := time.Now()
 
-	duration := s.duration.WithLabelValues(method)
 	return func() {
-		duration.Observe(time.Now().Sub(start).Seconds())
+		ms := float64(time.Since(startTime).Nanoseconds()) / 1e6
+		stats.Record(ctx, storeCallLatency.M(ms))
 	}
 }

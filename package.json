@@ -1,6 +1,6 @@
 {
   "name": "generator-go-micro-svc",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Go Lang Micro Service",
   "homepage": "https://github.com/vshiva/generator-go-micro-svc",
   "author": {
@@ -45,7 +45,6 @@
     "testEnvironment": "node"
   },
   "scripts": {
-    "prepublish": "nsp check",
     "pretest": "eslint .",
     "precommit": "lint-staged",
     "test": "jest"

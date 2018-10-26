@@ -9,18 +9,14 @@ import (
 	"syscall"
 	"time"
 
-	"gopkg.in/urfave/cli.v1"
-
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-	"github.com/grpc-ecosystem/grpc-opentracing/go/otgrpc"
-	"github.com/pkg/errors"
-	"<%=repoUrl%>/pkg/auth"
 	"<%=repoUrl%>/pkg/util"
 	"<%=repoUrl%>/pkg/log"
-	"<%=repoUrl%>/pkg/trace"
-
 	"<%=repoUrl%>/pkg/api"
 
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/pkg/errors"
+	"go.opencensus.io/plugin/ocgrpc"
+	"gopkg.in/urfave/cli.v1"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -55,12 +51,6 @@ var gatewayAction = func(c *cli.Context) error {
 		return errorExitCode
 	}
 
-	tracer, err := getTracer(o.TraceOptions, "<%=serviceName%>-gw", o.Port)
-	if err != nil {
-		log.WithError(err).Error("Unable to create a tracer")
-		return errorExitCode
-	}
-
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -68,13 +58,11 @@ var gatewayAction = func(c *cli.Context) error {
 	mux := runtime.NewServeMux(runtime.WithMarshalerOption(runtime.MIMEWildcard, &runtime.JSONPb{EmitDefaults: true})) // grpc-gateway
 
 	// The following handlers will be called in reversed order (ie. bottom to top)
-	var handler http.Handler
-	handler = auth.TokenMiddleware(mux)   // authentication middleware
-	handler = trace.HTTPMiddleware(handler, tracer) // opentracing + expose trace ID
+	handler := newHTTPHandler(mux, o.TraceOptions)
 
 	opts := []grpc.DialOption{
 		grpc.WithInsecure(),
-		grpc.WithUnaryInterceptor(otgrpc.OpenTracingClientInterceptor(tracer)), // opentracing (outgoing)
+		grpc.WithStatsHandler(&ocgrpc.ClientHandler{}),
 	}
 
 	err = api.Register<%=servicePName%>HandlerFromEndpoint(ctx, mux, o.Host, opts)
@@ -120,7 +108,7 @@ var gatewayAction = func(c *cli.Context) error {
 }
 
 type gatewayOptions struct {
-	*util.TraceOptions
+	util.TraceOptions
 
 	Port int
 	Host string
@@ -128,6 +116,9 @@ type gatewayOptions struct {
 
 func parseGatewayOptions(c *cli.Context) (*gatewayOptions, error) {
 	traceOptions := util.ParseTraceOptions(c)
+	if traceOptions.TraceNamespace == "" {
+		traceOptions.TraceNamespace = "<%=serviceName%>_gw"
+	}
 
 	port := c.Int("port")
 	if !validPortNumber(port) {

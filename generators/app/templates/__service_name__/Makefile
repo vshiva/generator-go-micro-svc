@@ -29,7 +29,7 @@ all: fmt gen lint build
 
 GOLINT = $(BIN)/golint
 $(BIN)/golint: | $(BASE) ; $(info $(M) installing golint…)
-	$Q $(GO) get github.com/golang/lint/golint
+	$Q $(GO) get -u golang.org/x/lint/golint
 
 GOCOVMERGE = $(BIN)/gocovmerge
 $(BIN)/gocovmerge: | $(BASE) ; $(info $(M) installing gocovmerge…)
