@@ -7,8 +7,7 @@ import (
 	"fmt"
 	"strings"
 
-	opentracing "github.com/opentracing/opentracing-go"
-	"github.com/opentracing/opentracing-go/ext"
+	"go.opencensus.io/trace"
 
 	{{range .CustomImports}}
 	"{{.}}"
@@ -18,58 +17,42 @@ import (
 // force context to be used
 var _ context.Context
 
-// TraceStore wraps another Store and sends trace information to zipkin.
+// TraceStore wraps another Store and records trace information.
 type TraceStore struct {
 	store     Store
-	tracer    opentracing.Tracer
 	component string
 }
 
 // NewTraceStore creates a new TraceStore.
-func NewTraceStore(store Store, tracer opentracing.Tracer) *TraceStore {
+func NewTraceStore(store Store) *TraceStore {
 	component := strings.TrimPrefix(fmt.Sprintf("%T", store), "*")
 	return &TraceStore{
 		store:     store,
-		tracer:    tracer,
 		component: component,
 	}
 }
 
 var _ Store = (*TraceStore)(nil)
 
-func (s *TraceStore) trace(ctx context.Context, operationName string, opts ...opentracing.StartSpanOption) (context.Context, opentracing.Span) {
-	var span opentracing.Span
-	if parentSpan := opentracing.SpanFromContext(ctx); parentSpan != nil {
-		opts = append(opts, opentracing.ChildOf(parentSpan.Context()))
-		span = s.tracer.StartSpan(operationName, opts...)
-	} else {
-		span = s.tracer.StartSpan(operationName, opts...)
-	}
-
-	span.SetTag(string(ext.Component), s.component)
-
-	return opentracing.ContextWithSpan(ctx, span), span
-}
-
 {{range .Methods}}
 {{template "doc" . -}}
 func (s *TraceStore) {{.Name}}({{template "list" .Params}}) ({{template "list" .Returns}}) {
-	ctx, span := s.trace(ctx, "{{.Name}}")
-	defer span.Finish()
+	ctx, span := trace.StartSpan(ctx, "{{.Name}}")
+	defer span.End()
 
 	{{template "call" .Returns}} = s.store.{{.Name}}({{template "call" .Params}})
-	//if err != nil {
-	//	span.SetTag(string(ext.Error), true)
-	//}
+	{{if isLastReturnError .Returns }}
+		if {{ lastReturnName .Returns }} != nil {
+			span.Annotate([]trace.Attribute{
+				trace.StringAttribute("error", {{ lastReturnName .Returns }}.Error()),
+			}, "{{.Name}}")
+		}
+	{{end}}
 
 	return {{template "call" .Returns}}
 }
 {{end}}
 
-// Initialize calls Initialize on the wrapped store.
-func (s *TraceStore) Initialize() error {
-	return s.store.Initialize()
-}
 
 // Healthy calls Healthy on the wrapped store.
 func (s *TraceStore) Healthy() error {
@@ -83,6 +66,8 @@ func (s *TraceStore) Close() error {
 
 {{define "list"}}{{range $index, $element := .}}{{if $index}}, {{end}}{{if $element.Name}}{{$element.Name}}{{end}} {{$element.Type}}{{end}}{{end}}
 {{define "call"}}{{range $index, $element := .}}{{if $index}}, {{end}}{{if $element.Name}}{{$element.Name}}{{end}}{{end}}{{end}}
+
+{{define "error"}}{{end}}
 
 {{define "doc"}}
 {{range .Doc}}

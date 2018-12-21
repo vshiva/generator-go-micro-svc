@@ -6,11 +6,10 @@ set -e
 LOCAL=$(dirname $PWD)/..
 ROOT=$LOCAL
 protoc="protoc \
-    -I/usr/local/include
-    -I.
+    -I. \
     -I$GOPATH/src \
-    -I./vendor \
-    -I./vendor/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis"
+    -I/usr/local/include \
+    -I$GOPATH/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis"
 
 cd $LOCAL
 

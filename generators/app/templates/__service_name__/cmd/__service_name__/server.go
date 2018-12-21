@@ -10,19 +10,13 @@ import (
 	"os/signal"
 	"syscall"
 
-	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	grpcmw "github.com/mwitkow/go-grpc-middleware"
 	"github.com/pkg/errors"
-	"github.com/prometheus/client_golang/prometheus"
 	"<%=repoUrl%>/pkg/api"
 	"<%=repoUrl%>/pkg/server"
 	"<%=repoUrl%>/pkg/state"
 	"<%=repoUrl%>/pkg/util"
 	"<%=repoUrl%>/pkg/health"
 	"<%=repoUrl%>/pkg/log"
-	"<%=repoUrl%>/pkg/trace"
-	"google.golang.org/grpc"
-	mgo "gopkg.in/mgo.v2"
 	cli "gopkg.in/urfave/cli.v1"
 )
 
@@ -50,17 +44,8 @@ var serverFlags = []cli.Flag{
 		EnvVar: "METRICS_PORT",
 	},
 	cli.StringFlag{
-		Name:   "mongo",
-		Value:  "mongodb://localhost:27017",
-		EnvVar: "MONGODB_URI",
-	},
-	cli.StringFlag{
-		Name:  "mongo-database",
-		Value: "<%=serviceName%>",
-	},
-	cli.StringFlag{
 		Name:  "state-store",
-		Usage: "storage driver, currently supported [memory,mongo]",
+		Usage: "storage driver, currently supported [memory]",
 		Value: "memory",
 	},
 }
@@ -75,13 +60,11 @@ var serverAction = func(c *cli.Context) error {
 		return errorExitCode
 	}
 
-	healthService := health.New()
+	mux := http.NewServeMux()
+	registerPromMetricsExporter(mux, "<%=serviceName%>_server")
+	registerTraceExporter(o.TraceOptions)
 
-	tracer, err := getTracer(o.TraceOptions, "<%=serviceName%>", o.Port)
-	if err != nil {
-		log.WithError(err).Error("Unable to create a tracer")
-		return errorExitCode
-	}
+	healthService := health.New()
 
 	store, err := getStore(o)
 	if err != nil {
@@ -90,7 +73,7 @@ var serverAction = func(c *cli.Context) error {
 	}
 	defer store.Close()
 
-	err = store.Initialize()
+	err = store.Initialize(context.Background())
 	if err != nil {
 		log.WithError(err).Error("Unable to initialize store")
 		return errorExitCode
@@ -98,8 +81,8 @@ var serverAction = func(c *cli.Context) error {
 
 	healthService.RegisterProbe("store", store)
 
-	store = state.NewTraceStore(store, tracer)
-	store = state.NewMetricsStore(store)
+	store = state.NewTraceStore(store)   // Wrap it with tracing
+	store = state.NewMetricsStore(store) // Wrap it with metrics.
 
 	log.Debug("Creating server")
 	server, err := server.New(store)
@@ -108,16 +91,8 @@ var serverAction = func(c *cli.Context) error {
 		return errorExitCode
 	}
 
-	// The following interceptors will be called in order (ie. top to bottom)
-	interceptors := []grpc.UnaryServerInterceptor{
-		trace.Interceptor(tracer),              // opentracing + expose trace ID
-		grpc_prometheus.UnaryServerInterceptor, // prometheus
-	}
-
-	s := grpc.NewServer(grpcmw.WithUnaryServerChain(interceptors...))
+	s := newGRPCServeWithMetrics()
 	api.Register<%=servicePName%>Server(s, server)
-	grpc_prometheus.EnableHandlingTimeHistogram()
-	grpc_prometheus.Register(s)
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", o.Port))
 	if err != nil {
@@ -151,8 +126,8 @@ var serverAction = func(c *cli.Context) error {
 	// Start metrics server
 	go func() {
 		log.WithField("port", o.MetricsPort).Info("Starting metrics server")
-		http.Handle("/metrics", prometheus.Handler())
-		errc <- http.ListenAndServe(fmt.Sprintf(":%d", o.MetricsPort), nil)
+		err := http.ListenAndServe(fmt.Sprintf(":%d", o.MetricsPort), mux)
+		errc <- errors.Wrap(err, "metrics service returned an error")
 	}()
 
 	err = <-errc
@@ -168,10 +143,8 @@ var serverAction = func(c *cli.Context) error {
 }
 
 type serverOptions struct {
-	*util.TraceOptions
+	util.TraceOptions
 
-	MongoDatabase string
-	MongoURI      string
 	Port          int
 	HealthPort    int
 	MetricsPort   int
@@ -180,6 +153,9 @@ type serverOptions struct {
 
 func parseServerOptions(c *cli.Context) (*serverOptions, error) {
 	traceOptions := util.ParseTraceOptions(c)
+	if traceOptions.TraceNamespace == "" {
+		traceOptions.TraceNamespace = "<%=serviceName%>_server"
+	}
 
 	port := c.Int("port")
 	if !validPortNumber(port) {
@@ -210,9 +186,7 @@ func parseServerOptions(c *cli.Context) (*serverOptions, error) {
 
 	return &serverOptions{
 		TraceOptions: traceOptions,
-
-		MongoDatabase: c.String("mongo-database"),
-		MongoURI:      c.String("mongo"),
+		
 		Port:          port,
 		HealthPort:    healthPort,
 		MetricsPort:   metricsPort,
@@ -224,27 +198,7 @@ func getStore(o *serverOptions) (state.Store, error) {
 	switch o.StateStore {
 	case "memory":
 		return state.NewInMemoryStore(), nil
-	case "mongo":
-		return getMongoStore(o)
 	default:
 		return nil, fmt.Errorf("Invalid store: %s", o.StateStore)
 	}
-}
-
-func getMongoStore(o *serverOptions) (*state.MongoStore, error) {
-	log.Info("Creating MongoDB store")
-
-	log.WithField("MongoURI", o.MongoURI).Debug("Dialing the MongoDB cluster")
-	session, err := mgo.Dial(o.MongoURI)
-	if err != nil {
-		return nil, errors.Wrap(err, "Dialing the MongoDB cluster failed")
-	}
-
-	log.WithField("MongoDatabase", o.MongoDatabase).Debug("Creating MongoDB store")
-	store, err := state.NewMongoStore(session, o.MongoDatabase)
-	if err != nil {
-		return nil, errors.Wrap(err, "Creating MongoDB store failed")
-	}
-
-	return store, nil
 }

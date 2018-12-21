@@ -6,6 +6,7 @@ import (
 	"context"
 
 	"<%=repoUrl%>/pkg/metrics"
+	"go.opencensus.io/stats"
 
 	{{range .CustomImports}}
 	"{{.}}"
@@ -33,18 +34,18 @@ var _ Store = (*MetricsStore)(nil)
 {{range .Methods}}
 {{template "doc" . -}}
 func (s *MetricsStore) {{.Name}}({{template "list" .Params}}) ({{template "list" .Returns}}) {
-	done := s.observer.Observe("{{.Name}}")
+	done := s.observer.Observe(ctx, "{{.Name}}")
 	defer done()
-	
-	return s.store.{{.Name}}({{template "call" .Params}})
+	{{template "call" .Returns}} = s.store.{{.Name}}({{template "call" .Params}})
+	{{if isLastReturnError .Returns }}
+		if {{ lastReturnName .Returns }} != nil {
+			stats.Record(ctx, metrics.StoreCallErrorCount.M(1)) // Counter to track a store call errors
+		}
+	{{end}}
+
+	return {{template "call" .Returns}}
 }
 {{end}}
-
-// Initialize calls Initialize on the wrapped store.
-func (s *MetricsStore) Initialize() error {
-	s.observer.Preload(s, "Initialize")
-	return s.store.Initialize()
-}
 
 // Healthy calls Healthy on the wrapped store.
 func (s *MetricsStore) Healthy() error {

@@ -2,48 +2,32 @@
 
 <%=servicePName%> description
 
-## Getting Started
-Go Micro service based on a blueprint that 
-- enables fast development of gRPC based micro services
-- exposes the gRPC services as REST / Json via grpc gateway interface
-- exposes metrics endpoint, which prometheus could scrape from
-- support open tracing / zipkin
+A Micro service in GoLang based that
+- enables fast development of [gRPC](https://grpc.io/) based micro services
+- exposes the gRPC services as REST / Json via [grpc gateway](https://github.com/grpc-ecosystem/grpc-gateway) interface
+- exposes metrics endpoint, which [Prometheus](https://prometheus.io/) could scrape from
+- support tracing and metrics instrumentation using [OpenCensus](https://opencensus.io/)
 - exposes health check end points
-- defiens state management interface. A default implementation of BoltDB
+- defines state management interface. A default setup for [PostgreSQL](https://www.postgresql.org/)
 - provides standard CLI 
-- build Docker image
-- enables Kubernetes friendly deployment using Helm chart
+- build [Docker](https://www.docker.com/) container image
+- enables [Kubernetes](https://kubernetes.io/) friendly deployment using [Helm charts](https://helm.sh/)
 - enables consistent logging
+
+## Getting Started
 
 ### Building 
 #### Pre-Req
-- Go 
-- Docker
-
-Make sure you have setup $GOPATH. Then, `go get -u` the following packages:
-
-```sh
-go get -u github.com/kardianos/govendor
-go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
-go get -u github.com/golang/protobuf/protoc-gen-go
-```
+- [Go 1.11](https://golang.org/dl/)
+- [Docker](https://store.docker.com/search?q=&type=edition&offering=community)
+- [Protocol Buffers 3.6.1](https://github.com/protocolbuffers/protobuf/releases)
+- *[Kubernetes](https://docs.docker.com/docker-for-mac/kubernetes/)* - `Optional` If you want to deploy
 
 #### Binary
 `make`
 
 #### Docker Image
 `make docker-build`
-
-### Running
-
-After a successful build using make you
-
-`./bin/<%=pkgName%>`
-
-Similarly you can the docker image after 
-
-`docker run --rm <%=pkgName%>:dev`
 
 ### Development workflow
 - Add your project specific flags / command line arguments in `cmd/<%=servicePName%>/server.go`
@@ -52,6 +36,20 @@ Similarly you can the docker image after
 - Implement the business logic for your service methods in `pkg/server` package
 - Run `make build`. This will build a binary `<%=pkgName%>` under `./bin` folder
 - Often times the service needs to interact with some store. For example a sql store or a nosql store like mongo or bolddb. A Store interface defines all the persistence/repo methods and you there could be multiple implementations for the persistence layer. The store interface methods and various implmentations are defined in `pkg/state` package.
- 
+
+### Running
+
+#### on localhost
+After a successful build using make you can
+
+`./bin/<%=pkgName%>`
 
 
+#### on localhost using docker 
+Similarly you can the docker image after 
+
+`docker run --rm <%=pkgName%>:dev`
+
+#### on a kubernetes cluster
+
+`todo`

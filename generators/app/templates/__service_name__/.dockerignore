@@ -1,3 +1,2 @@
 vendor
 .vscode
-!vendor/vendor.json

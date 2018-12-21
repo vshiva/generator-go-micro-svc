@@ -65,7 +65,7 @@ const prompts = [
         value: 'gcr.io'
       }
     ],
-    default: 'ocir.io',
+    default: 'docker.io',
     store: true
   },
   {
@@ -122,7 +122,7 @@ module.exports = class extends Generator {
     });
   }
 
-  async writing() {
+  writing() {
     console.log('Generating tree folders');
     let pkgDir = this.destinationPath('pkg');
     let srcDir = this.destinationPath(path.join('src/', this.templateData.repoUrl));
@@ -157,12 +157,6 @@ module.exports = class extends Generator {
     this.fs.copyTpl(
       this.sourceRoot() + '/helm/**',
       path.join(srcDir, 'helm'),
-      this.templateData
-    );
-
-    this.fs.copyTpl(
-      this.sourceRoot() + '/vendor/**',
-      path.join(srcDir, 'vendor'),
       this.templateData
     );
 

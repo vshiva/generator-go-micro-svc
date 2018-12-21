@@ -1,4 +1,7 @@
+<%=licenseText%>
 package state
+
+import "context"
 
 type inMemoryStore struct {
 	db map[string]interface{}
@@ -9,7 +12,7 @@ func NewInMemoryStore() Store {
 	return &inMemoryStore{}
 }
 
-func (i *inMemoryStore) Initialize() error {
+func (i *inMemoryStore) Initialize(ctx context.Context) error {
 	return nil
 }
 

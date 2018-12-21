@@ -14,6 +14,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+	"reflect"
 )
 
 func contains(needle string, haystack []string) bool {
@@ -24,6 +25,26 @@ func contains(needle string, haystack []string) bool {
 	}
 
 	return false
+}
+
+var fns = template.FuncMap{
+	"last": func(x int, a interface{}) bool {
+		return x == reflect.ValueOf(a).Len()-1
+	},
+	"isLastReturnError": func(returns []*Arg) bool {
+		l := len(returns)
+		if l == 0 {
+			return false
+		}
+		return returns[l-1].Type == "error"
+	},
+	"lastReturnName": func(returns []*Arg) string {
+		l := len(returns)
+		if l == 0 {
+			return ""
+		}
+		return returns[l-1].Name
+	},
 }
 
 func main() {
@@ -124,7 +145,7 @@ func main() {
 		}
 	}
 
-	t, err := template.New("t").Parse(tmpl)
+	t, err := template.New("t").Funcs(fns).Parse(tmpl)
 	if err != nil {
 		panic(err)
 	}
