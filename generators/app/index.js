@@ -13,19 +13,9 @@ const prompts = [
     default: 'mysvc'
   },
   {
-    type: 'list',
+    type: 'input',
     name: 'repo',
     message: `What is your ${chalk.red('source repository')}?`,
-    choices: [
-      {
-        name: 'github.com',
-        value: 'github.com'
-      },
-      {
-        name: 'bitbucket.com',
-        value: 'bitbucket.com'
-      }
-    ],
     default: 'github.com',
     store: true
   },
@@ -135,6 +125,12 @@ module.exports = class extends Generator {
     this.fs.copyTpl(this.sourceRoot() + '/*', srcDir, this.templateData);
 
     this.fs.copyTpl(this.sourceRoot() + '/.*', srcDir, this.templateData);
+
+    this.fs.copyTpl(
+      this.sourceRoot() + '/.gitignore-template',
+      path.join(srcDir, '.gitignore'),
+      this.templateData
+    );
 
     this.fs.copyTpl(
       this.sourceRoot() + '/.vscode/**',
